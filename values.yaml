@@ -1,0 +1,371 @@
+## Open WebUI configuration
+##
+
+# -- Provide a name in place of `webui`
+nameOverride: webui
+# -- String to fully override `"webui"`
+fullnameOverride: ""
+
+# -- Number of old deployment ReplicaSets to retain. The rest will be garbage collected.
+revisionHistoryLimit: 3
+
+# -- Toggle and define pod-level security context.
+# @default -- `{}` (See [values.yaml])
+securityContext: {}
+#  runAsUser: 999
+#  runAsGroup: 999
+#  fsGroup: 999
+
+# -- Mapping between IP and hostnames that will be injected as entries in the pod's hosts files
+hostAliases: []
+# - ip: 10.20.30.40
+#   hostnames:
+#   - git.myhostname
+
+# -- The number of webui pods to run
+replicas: 1
+
+## Open WebUI Horizontal Pod Autoscaler
+autoscaling:
+  # -- Enable Horizontal Pod Autoscaler ([HPA]) for Open WebUI
+  enabled: false
+  # -- Minimum number of replicas for Open WebUI [HPA]
+  minReplicas: 1
+  # -- Maximum number of replicas for Open WebUI [HPA]
+  maxReplicas: 5
+  # -- Average CPU utilization percentage for Open WebUI [HPA]
+  targetCPUUtilizationPercentage: 50
+  # -- Average memory utilization percentage for Open WebUI [HPA]
+  targetMemoryUtilizationPercentage: 50
+  # -- Configures the scaling behavior of the target in both Up and Down directions.
+  behavior: {}
+  # scaleDown:
+  #  stabilizationWindowSeconds: 300
+  #  policies:
+  #   - type: Pods
+  #     value: 1
+  #     periodSeconds: 180
+  # scaleUp:
+  #   stabilizationWindowSeconds: 300
+  #   policies:
+  #   - type: Pods
+  #     value: 2
+  #     periodSeconds: 60
+  # -- Configures custom HPA metrics for Open WebUI
+  # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  metrics: []
+
+## Open WebUI Pod Disruption Budget
+## Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
+pdb:
+  # -- Deploy a [PodDisruptionBudget] for Open WebUI
+  enabled: false
+  # -- Labels to be added to Open WebUI pdb
+  labels: {}
+  # -- Annotations to be added to Open WebUI pdb
+  annotations: {}
+  # -- Number of pods that are available after eviction as number or percentage (eg.: 50%)
+  # @default -- `""` (defaults to 0 if not specified)
+  minAvailable: ""
+  # -- Number of pods that are unavailable after eviction as number or percentage (eg.: 50%).
+  maxUnavailable: ""
+
+## Open WebUI image
+image:
+  # -- Repository to use for Open WebUI
+  repository: "ghcr.io/open-webui/open-webui"
+  # -- Tag to use for Open WebUI
+  # @default -- `"v0.1.107"`
+  tag: "git-ee16177-cuda" # v0.1.107
+  # -- Image pull policy for Open WebUI
+  imagePullPolicy: "IfNotPresent"
+
+# -- Secrets with credentials to pull images from a private registry
+imagePullSecrets: []
+
+# -- Additional command line arguments to pass to Open WebUI
+extraArgs: []
+
+# -- Environment variables to pass to Open WebUI
+env: []
+
+# -- envFrom to pass to Open WebUI
+# @default -- `[]` (See [values.yaml])
+envFrom: []
+# - configMapRef:
+#     name: config-map-name
+# - secretRef:
+#     name: secret-name
+
+# -- Specify postStart and preStop lifecycle hooks for your webui container
+# Specifying this will disable pulling models on container start-up
+lifecycle: {}
+
+# -- Additional volumeMounts to the webui container
+volumeMounts: []
+#  - mountPath: /usr/local/bin/kubelogin
+#    name: custom-tools
+#    subPath: kubelogin
+
+# -- Additional volumes to the webui pod
+volumes: []
+#  - name: custom-tools
+#    emptyDir: {}
+
+# -- Annotations to be added to webui Deployment
+deploymentAnnotations: {}
+
+# -- Annotations to be added to webui pods
+podAnnotations: {}
+
+# -- Labels to be added to webui pods
+podLabels: {}
+
+# -- Resource limits and requests for Open WebUI
+resources: {}
+#  requests: {}
+#  limits: {}
+
+# Open WebUI container ports
+containerPorts:
+  # -- webui container port
+  http: 8080
+
+# -- Host Network for Open WebUI pods
+hostNetwork: false
+
+# -- [DNS configuration]
+dnsConfig: {}
+# -- Alternative DNS policy for Open WebUI pods
+dnsPolicy: "ClusterFirst"
+
+# -- Open WebUI container-level security context
+# @default -- See [values.yaml]
+containerSecurityContext: {}
+#  runAsNonRoot: true
+#  readOnlyRootFilesystem: true
+#  allowPrivilegeEscalation: false
+#  seccompProfile:
+#    type: RuntimeDefault
+#  capabilities:
+#    drop:
+#      - ALL
+
+## Readiness and liveness probes for default backend
+## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+readinessProbe:
+  # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
+  failureThreshold: 3
+  # -- Number of seconds after the container has started before [probe] is initiated
+  initialDelaySeconds: 10
+  # -- How often (in seconds) to perform the [probe]
+  periodSeconds: 10
+  # -- Minimum consecutive successes for the [probe] to be considered successful after having failed
+  successThreshold: 1
+  # -- Number of seconds after which the [probe] times out
+  timeoutSeconds: 1
+
+livenessProbe:
+  # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
+  failureThreshold: 3
+  # -- Number of seconds after the container has started before [probe] is initiated
+  initialDelaySeconds: 10
+  # -- How often (in seconds) to perform the [probe]
+  periodSeconds: 10
+  # -- Minimum consecutive successes for the [probe] to be considered successful after having failed
+  successThreshold: 1
+  # -- Number of seconds after which the [probe] times out
+  timeoutSeconds: 1
+
+# -- terminationGracePeriodSeconds for container lifecycle hook
+terminationGracePeriodSeconds: 30
+
+# -- Priority class for Open WebUI pods
+priorityClassName: ""
+
+# -- [Node selector]
+nodeSelector: {}
+
+# -- [Tolerations] for use with node taints
+tolerations: []
+
+# -- Assign custom [affinity] rules to the deployment
+affinity: {}
+
+# -- Assign custom [TopologySpreadConstraints] rules to Open WebUI
+## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+## If labelSelector is left out, it will default to the labelSelector configuration of the deployment
+topologySpreadConstraints: []
+# - maxSkew: 1
+#   topologyKey: topology.kubernetes.io/zone
+#   whenUnsatisfiable: DoNotSchedule
+
+# -- Deployment strategy to be added to the webui Deployment
+deploymentStrategy: {}
+# type: RollingUpdate
+# rollingUpdate:
+#   maxSurge: 25%
+#   maxUnavailable: 25%
+
+## Open WebUI persistence configuration
+persistence:
+  # -- Create a PVC for Open WebUI (empty-dir will be used if not specified)
+  enabled: true
+  # -- Storage class of backing PVC
+  storageClass: ""
+  # -- Persistent Volume Claim annotations
+  annotations: {}
+  # -- Persistent Volume Access Modes
+  accessModes:
+  - ReadWriteOnce
+  # -- Size of data volume
+  size: 4Gi
+  # -- The name of an existing PVC to use for persistence
+  existingClaim: ""
+  # -- Selector to match an existing Persistent Volume for Open WebUI data PVC
+  ## If set, the PVC can't have a PV dynamically provisioned for it
+  selector: {}
+  ## E.g.
+  ## selector:
+  ##   matchLabels:
+  ##     app: my-app
+  ##
+  # -- Custom PVC data source
+  dataSource: {}
+
+## Open WebUI service configuration
+service:
+  # -- webui service annotations
+  annotations: {}
+  # -- webui service labels
+  labels: {}
+  # -- webui service type
+  type: ClusterIP
+  # -- webui service http port for NodePort service type (only if `webui.service.type` is set to "NodePort")
+  nodePortHttp: 30080
+  # -- webui service http port
+  servicePortHttp: 80
+  # -- webui service http port name, can be used to route traffic via istio
+  servicePortHttpName: http
+  # -- LoadBalancer will get created with the IP specified in this field
+  loadBalancerIP: ""
+  # -- Source IP ranges to allow access to service from
+  loadBalancerSourceRanges: []
+  # -- webui service external IPs
+  externalIPs: []
+  # -- Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints
+  externalTrafficPolicy: ""
+  # -- Used to maintain session affinity. Supports `ClientIP` and `None`
+  sessionAffinity: ""
+
+serviceAccount:
+  # -- Create webui service account
+  create: true
+  # -- webui service account name
+  name: webui
+  # -- Annotations applied to created service account
+  annotations: {}
+  # -- Labels applied to created service account
+  labels: {}
+  # -- Automount API credentials for the Service Account
+  automountServiceAccountToken: true
+
+# Open WebUI ingress configuration
+ingress:
+  # -- Enable an ingress resource for Open WebUI
+  enabled: false
+  # -- Additional ingress labels
+  labels: {}
+  # -- Additional ingress annotations
+  annotations: {}
+  # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+
+  # -- Defines which ingress controller will implement the resource
+  ingressClassName: ""
+
+  # -- Open WebUI hostname
+  hostname: ""
+
+  # -- The path to Open WebUI
+  path: /
+
+  # -- Ingress path type. One of `Exact`, `Prefix` or `ImplementationSpecific`
+  pathType: Prefix
+
+  ## TLS certificate will be retrieved from a TLS secret `webui-tls`
+  tls:
+    # -- Enable TLS configuration for the hostname defined at `ingress.hostname`
+    enabled: false
+    # -- Create a Self Signed TLS Certificate for Open WebUI
+    selfSigned: false
+
+  # -- The list of additional hostnames to be covered by ingress record
+  # @default -- `[]` (See [values.yaml])
+  extraHosts: []
+  # - name: webui.example.com
+  #   path: /
+
+  # -- Additional ingress paths
+  # @default -- `[]` (See [values.yaml])
+  extraPaths: []
+  # - path: /*
+  #   pathType: Prefix
+  #   backend:
+  #     service:
+  #       name: ssl-redirect
+  #       port:
+  #         name: use-annotation
+
+  # -- Additional ingress rules
+  # @default -- `[]` (See [values.yaml])
+  extraRules: []
+  # - host: example.example.com
+  #   http:
+  #       path: /
+  #       backend:
+  #         service:
+  #           name: example-svc
+  #           port:
+  #             name: http
+
+  # -- Additional TLS configuration
+  # @default -- `[]` (See [values.yaml])
+  extraTls: []
+  # - hosts:
+  #   - webui.example.com
+  #   secretName: your-certificate-name
+
+## Ollama configuration parameters
+ollama:
+  # -- Install Ollama Helm Chart
+  enabled: true
+
+  OLLAMA_API_BASE_URL: '"{{Release.Namespace}}"."https://ollama.idfm-datalab.net"'
+  # -- External Ollama API URL (Can be used even if Ollama is not enabled/ installed)
+  externalURL: "https://ollama.idfm-datalab.net"
+
+## OpenAI configuration parameters
+openai:
+  # -- Inject OpenAI API Environment Variables
+  enabled: true
+  # -- OpenAI API API URL
+  baseUrl: "https://api.openai.com/v1"
+  # -- OpenAI API Key
+  apiKey: ""
+  # -- Name of an existing secret resource containing the OpenAI API credentials
+  existingApiKeySecret: ""
+  # -- Name of the existing secret's key containing the OpenAI API credentials
+  existingApiKeySecretKey: "openai-api-key"
+
+## OpenAI configuration parameters
+litellm:
+  # -- Mount LiteLLM `config.yaml`
+  enabled: true
+  # -- LiteLLM `config.yaml`
+  # @default -- `[]` (See [values.yaml]) 
+  config:
+    general_settings: {}
+    litellm_settings: {}
+    model_list: []
+    router_settings: {}

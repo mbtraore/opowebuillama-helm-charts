@@ -1,0 +1,6 @@
+dependencies:
+- name: ollama
+  repository: https://charts.braveokafor.com
+  version: 0.1.0
+digest: sha256:6142eb0eb33c66e9b3dfbb2f8faf571ef6ffa275561367ae6a35b88d5e0e9469
+generated: "2024-03-02T13:41:28.404968+01:00"

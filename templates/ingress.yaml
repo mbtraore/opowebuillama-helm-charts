@@ -1,0 +1,67 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "webui.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "webui.labels" . | nindent 4 }}
+    {{- with .Values.ingress.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.ingressClassName }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.hostname }}
+      http:
+        paths:
+          {{- with .Values.ingress.extraPaths }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          - path: {{ .Values.ingress.path }}
+            pathType: {{ $.Values.ingress.pathType }}
+            backend:
+              service:
+                name: {{ include "webui.fullname" . }}
+                port:
+                  number: {{ .Values.service.servicePortHttp }}
+    {{- range .Values.ingress.extraHosts }}
+    - host: {{ .name | quote }}
+      http:
+        paths:
+          - path: {{ default $.Values.ingress.path .path }}
+            pathType: {{ default $.Values.ingress.pathType .pathType }}
+            backend:
+              service:
+                name: {{ include "webui.fullname" $ }}
+                port:
+                  number: {{ $.Values.service.servicePortHttp }}
+    {{- end }}
+    {{- with .Values.ingress.extraRules }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if or .Values.ingress.tls.enabled .Values.ingress.extraTls }}
+  tls:
+    {{- if .Values.ingress.tls.enabled }}
+    - hosts:
+      - {{ .Values.ingress.hostname }}
+      {{- range .Values.ingress.extraHosts }}
+        {{- if .name }}
+      -  {{ .name }}
+        {{- end }}
+      {{- end }}
+      secretName: {{ include "webui.fullname" . }}-tls
+    {{- end }}
+    {{- with .Values.ingress.extraTls }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}
